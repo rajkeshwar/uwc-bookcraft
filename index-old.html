@@ -138,7 +138,7 @@ body.light-app #preview-scroll{background:#bcc0c9}
 kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border-radius:3px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.82em}
 
 /* ═══════════════ THEME: MODERN ═══════════════ */
-.theme-modern{font-family:'Sora',system-ui,sans-serif;font-size:calc(var(--bf,11.5pt) * 0.88);line-height:1.75;color:#0f172a}
+.theme-modern{font-family:'Sora',system-ui,sans-serif;font-size:var(--bf,10.5pt);line-height:1.75;color:#0f172a}
 .theme-modern h1{font-family:'Sora',sans-serif;font-size:2em;font-weight:700;color:#1e40af;line-height:1.15;margin:0 0 .5em;letter-spacing:-.8px}
 .theme-modern h2{font-size:1.45em;font-weight:700;color:#1e3a5f;margin:1.8em 0 .5em;padding-left:12px;border-left:4px solid #3b82f6}
 .theme-modern h3{font-size:1.15em;font-weight:600;color:#1e40af;margin:1.3em 0 .35em}
@@ -159,7 +159,7 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .theme-modern mark{background:#dbeafe;color:#1e40af;padding:0 3px;border-radius:2px}
 
 /* ═══════════════ THEME: ACADEMIC ═══════════════ */
-.theme-academic{font-family:'Libre Baskerville',Palatino,serif;font-size:calc(var(--bf,11.5pt) * 0.93);line-height:1.9;color:#2c2018}
+.theme-academic{font-family:'Libre Baskerville',Palatino,serif;font-size:var(--bf,11pt);line-height:1.9;color:#2c2018}
 .book-page.theme-academic{background:#fff !important}
 .theme-academic h1{font-family:'Fraunces',serif;font-size:2em;font-weight:600;color:#3d2800;letter-spacing:-.5px;line-height:1.2;margin:0 0 .5em;text-align:center;padding-bottom:.5em;border-bottom:1px solid var(--gold2)}
 .theme-academic h1::after{content:'❧';display:block;text-align:center;color:var(--gold2);font-size:.45em;margin-top:.3em}
@@ -184,10 +184,10 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 /* ═══════════════ THEME: HANDWRITTEN ═══════════════ */
 .theme-handwritten{font-family:'Kalam',cursive;font-size:var(--bf,12pt);line-height:1.9;color:#2d2520}
 .book-page.theme-handwritten{background:#fff !important}
-.theme-handwritten h1{font-family:'Caveat',cursive;font-size:2.2em;font-weight:700;color:#3d2800;line-height:1.15;margin:0 0 .5em;padding-bottom:.3em;border-bottom:2px solid #c8a96e}
-.theme-handwritten h2{font-family:'Caveat',cursive;font-size:1.6em;font-weight:700;color:#4a3520;margin:1.5em 0 .45em;border-bottom:1px dashed #c8a96e;padding-bottom:.15em}
-.theme-handwritten h3{font-family:'Caveat',cursive;font-size:1.25em;font-weight:700;color:#5a4030;margin:1.2em 0 .35em}
-.theme-handwritten h4{font-family:'Kalam',cursive;font-size:1.08em;font-weight:700;color:#6b4c25;margin:1em 0 .3em;font-style:italic}
+.theme-handwritten h1{font-family:'Caveat',cursive;font-size:2.6em;font-weight:700;color:#3d2800;line-height:1.15;margin:0 0 .5em;padding-bottom:.3em;border-bottom:2px solid #c8a96e}
+.theme-handwritten h2{font-family:'Caveat',cursive;font-size:2em;font-weight:700;color:#4a3520;margin:1.5em 0 .45em;border-bottom:1px dashed #c8a96e;padding-bottom:.15em}
+.theme-handwritten h3{font-family:'Caveat',cursive;font-size:1.6em;font-weight:700;color:#5a4030;margin:1.2em 0 .35em}
+.theme-handwritten h4{font-family:'Kalam',cursive;font-size:1.15em;font-weight:700;color:#6b4c25;margin:1em 0 .3em;font-style:italic}
 .theme-handwritten p{margin:0 0 .9em}
 .theme-handwritten a{color:#8b3a00;text-decoration:underline;text-underline-offset:3px}
 .theme-handwritten strong{font-weight:700;color:#2d2520}
@@ -202,8 +202,6 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .theme-handwritten tbody tr:nth-child(even){background:rgba(200,169,110,.07)}
 .theme-handwritten tbody td{padding:7px 12px}
 .theme-handwritten mark{background:#fff3b0;color:#5a3810;padding:0 3px;border-radius:2px}
-.theme-handwritten .chapter-number{font-family:'Caveat',cursive;font-weight:700;text-transform:none;letter-spacing:.05em}
-.theme-handwritten .chapter-title{font-family:'Kalam',cursive;font-weight:700}
 /* ═══════════════ SHARED CODE BLOCKS (all themes) ═══════════════ */
 .book-page pre{background:#f8f9fa;border:1px solid #e5e7eb;border-left:3px solid #94a3b8;border-radius:0 6px 6px 0;padding:12px 14px;margin:.8em 0 1em;overflow-x:auto;font-size:.79em;line-height:1.65}
 .theme-academic .book-page pre,.book-page.theme-academic pre{background:#f5ede0;border-color:#d4b896;border-left-color:var(--gold2)}
@@ -246,7 +244,7 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 
 /* ═══════════════ CUSTOM CALLOUT BLOCKS ═══════════════ */
 .callout{margin:1em 0;padding:11px 15px 11px 36px;border-radius:6px;position:relative;font-size:.94em}
-.callout::before{position:absolute;left:13px;top:15px;font-size:17px;line-height:1}
+.callout::before{position:absolute;left:13px;top:11px;font-size:17px;line-height:1}
 .callout p{margin:0 0 .35em;text-align:left}.callout p:last-child{margin:0}
 .callout strong{display:inline-block;margin-bottom:3px;font-size:.88em}
 .callout-title{font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;display:block}
@@ -510,10 +508,6 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
         <div class="swatch"><div class="sw-a" style="background:#fffdf8"></div><div class="sw-b" style="background:#1a2744"></div></div>
         <div><div style="font-weight:600">Classic Book</div><div style="font-size:10px;color:var(--muted)">Crimson Pro · warm paper · serif elegance</div></div>
       </div>
-      <div class="theme-opt" id="t-handwritten" onclick="setTheme('handwritten')">
-        <div class="swatch"><div class="sw-a" style="background:#fefcf5"></div><div class="sw-b" style="background:#5a3820"></div></div>
-        <div><div style="font-weight:600;font-family:'Caveat',cursive;font-size:14px">Handwritten</div><div style="font-size:10px;color:var(--muted)">Kalam + Caveat · warm paper · handwritten</div></div>
-      </div>
       <div class="theme-opt" id="t-modern" onclick="setTheme('modern')">
         <div class="swatch"><div class="sw-a" style="background:#f8fafc"></div><div class="sw-b" style="background:#1e40af"></div></div>
         <div><div style="font-weight:600">Modern Clean</div><div style="font-size:10px;color:var(--muted)">Sora · clean white · blue accents</div></div>
@@ -521,6 +515,10 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
       <div class="theme-opt" id="t-academic" onclick="setTheme('academic')">
         <div class="swatch"><div class="sw-a" style="background:#fdf7ef"></div><div class="sw-b" style="background:#b8860b"></div></div>
         <div><div style="font-weight:600">Dark Academic</div><div style="font-size:10px;color:var(--muted)">Fraunces · parchment · ornamental</div></div>
+      </div>
+      <div class="theme-opt" id="t-handwritten" onclick="setTheme('handwritten')">
+        <div class="swatch"><div class="sw-a" style="background:#fefcf5"></div><div class="sw-b" style="background:#5a3820"></div></div>
+        <div><div style="font-weight:600;font-family:'Caveat',cursive;font-size:14px">Handwritten</div><div style="font-size:10px;color:var(--muted)">Kalam + Caveat · warm paper · handwritten</div></div>
       </div>
       <div class="menu-sep"></div>
       <div class="menu-label">Page Settings</div>
@@ -1904,25 +1902,9 @@ async function exportEPUB(title) {
     );
   });
 
-  const navItems = (() => {
-    // Build properly nested nav: h2 items nest inside their preceding h1
-    let html = '';
-    let inH1Sub = false;
-    headings.forEach(h => {
-      if (h.level === 'h1') {
-        if (inH1Sub) { html += '      </ol></li>\n'; inH1Sub = false; }
-        else if (html) { html += '    </li>\n'; }
-        html += `    <li><a href="chapter.xhtml#${h.id}">${h.text}</a>\n`;
-        inH1Sub = false;
-      } else {
-        if (!inH1Sub) { html += '      <ol>\n'; inH1Sub = true; }
-        html += `        <li><a href="chapter.xhtml#${h.id}">${h.text}</a></li>\n`;
-      }
-    });
-    if (inH1Sub) html += '      </ol></li>\n';
-    else if (headings.length) html += '    </li>\n';
-    return html;
-  })();
+  const navItems = headings.map(h =>
+    `${h.level === 'h2' ? '      ' : '    '}<li><a href="chapter.xhtml${h.id ? '#'+h.id : ''}">${h.text}</a></li>`
+  ).join('\n');
 
   // Collect inline images for EPUB manifest
   const imgRefs = [...rawHtml.matchAll(/src="(data:[^"]+)"/g)];
@@ -1951,12 +1933,13 @@ async function exportEPUB(title) {
 <head>
   <meta charset="UTF-8"/>
   <title>${bookTitle}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
 <body epub:type="bodymatter">
-<section epub:type="chapter">
+<article>
 ${chapterFinal}
-</section>
+</article>
 </body>
 </html>`;
 
@@ -1966,16 +1949,17 @@ ${chapterFinal}
 <head>
   <meta charset="UTF-8"/>
   <title>Table of Contents</title>
-  <link rel="stylesheet" type="text/css" href="styles.css"/>
 </head>
 <body>
 <nav epub:type="toc" id="toc">
   <h1>Table of Contents</h1>
   <ol>
-    ${headings.length ? navItems : `<li><a href="chapter.xhtml">${bookTitle}</a></li>`}
+    <li><a href="chapter.xhtml">${bookTitle}</a>
+      ${headings.length > 1 ? `<ol>\n${navItems}\n      </ol>` : ''}
+    </li>
   </ol>
 </nav>
-<nav epub:type="landmarks" id="landmarks" hidden="">
+<nav epub:type="landmarks" hidden="hidden">
   <ol>
     <li><a epub:type="bodymatter" href="chapter.xhtml">Start of Content</a></li>
   </ol>
@@ -1988,13 +1972,14 @@ ${chapterFinal}
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:title>${bookTitle}</dc:title>
     <dc:language>en</dc:language>
-    <dc:identifier id="uid">urn:uuid:${bookId}</dc:identifier>
+    <dc:identifier id="uid">${bookId}</dc:identifier>
     <dc:creator>BookCraft</dc:creator>
     <meta property="dcterms:modified">${now}</meta>
+    <meta name="cover" content="nav"/>
   </metadata>
   <manifest>
     <item id="nav"     href="nav.xhtml"     media-type="application/xhtml+xml" properties="nav"/>
-    <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+    <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml" properties="svg"/>
     <item id="css"     href="styles.css"    media-type="text/css"/>
 ${imgManifest}
   </manifest>
@@ -2042,24 +2027,16 @@ ${imgManifest}
 }
 
 function buildEPUBChapter(rawHtml) {
-  // Convert HTML to valid XHTML: self-close void elements, strip non-EPUB elements
+  // Convert HTML to valid XHTML: self-close void elements, fix attributes
   let xhtml = rawHtml
-    // Void elements must be self-closed in XHTML
-    .replace(/<br\s*\/?>/gi, '<br/>')
-    .replace(/<hr\s*\/?>/gi, '<hr/>')
-    .replace(/<img([^>]*?)(?:\s*\/)?>/gi, (m, attrs) => `<img${attrs.replace(/"/g,'"')}/>`)
-    .replace(/<input([^>]*?)(?:\s*\/)?>/gi, '<input$1/>')
-    .replace(/<meta([^>]*?)(?:\s*\/)?>/gi, '<meta$1/>')
-    .replace(/<link([^>]*?)(?:\s*\/)?>/gi, '<link$1/>')
-    // Remove scripts
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    // Remove data-pg attrs (not needed in EPUB)
-    .replace(/\s*data-pg="[^"]*"/g, '')
-    // Fix any unquoted or bare boolean attributes
-    .replace(/(<[^>]+)\s+hidden(?!=)([^>]*>)/g, '$1 hidden=""$2')
-    // Page break visuals become epub page breaks
-    .replace(/<div class="page-break-visual"[^>]*><\/div>/g,
-      '<div style="break-after:page;page-break-after:always;"></div>');
+    .replace(/<br>/gi,'<br/>')
+    .replace(/<hr>/gi,'<hr/>')
+    .replace(/<img([^>]+[^/])>/gi,'<img$1/>')
+    .replace(/<input([^>]+[^/])>/gi,'<input$1/>')
+    // Remove script tags
+    .replace(/<script[\s\S]*?<\/script>/gi,'')
+    // Fix data-page attrs (not needed in EPUB)
+    .replace(/data-pg="[^"]*"/g,'');
   return xhtml;
 }
 
