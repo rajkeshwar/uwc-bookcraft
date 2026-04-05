@@ -8,7 +8,9 @@
     "node": ">=18.x"
   },
   "dependencies": {
-    "epub-gen-memory": "^1.1.2"
+    "epub-gen-memory": "^1.1.2",
+    "@sparticuz/chromium": "^123.0.0",
+    "puppeteer-core": "^22.0.0"
   },
   "scripts": {
     "dev": "vercel dev",

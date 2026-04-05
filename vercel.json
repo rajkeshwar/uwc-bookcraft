@@ -4,8 +4,12 @@
   "outputDirectory": "public",
   "functions": {
     "api/export-epub.js": {
-      "memory": 1024,
+      "memory": 512,
       "maxDuration": 30
+    },
+    "api/export-pdf.js": {
+      "memory": 1024,
+      "maxDuration": 60
     }
   },
   "rewrites": [
