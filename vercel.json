@@ -6,6 +6,10 @@
     "api/export-epub.js": {
       "memory": 1024,
       "maxDuration": 30
+    },
+    "api/export-pdf.js": {
+      "memory": 3009,
+      "maxDuration": 60
     }
   },
   "rewrites": [

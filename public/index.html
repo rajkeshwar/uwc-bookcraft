@@ -2274,112 +2274,133 @@ body{margin:0!important;padding:32px 20px!important;background:#8a8e96!important
 async function exportPDF(title) {
   const margin   = document.getElementById('sel-margin').value;
   const fontSize = document.getElementById('sel-fs').value;
-  const mmMargin = parseFloat(margin) * 10; // cm → mm
 
+  // Resolve images to base64 so they survive the server round-trip
   const resolvedMd = await resolveImgRefs(editor.value, true);
   const processed  = processCustomTags(resolvedMd);
   const rawHtml    = marked.parse(processed);
 
+  // Build full self-contained HTML page — same as HTML export but
+  // with print-optimised overrides so Puppeteer renders it correctly
+  const fullHtml = await buildPDFHtml(rawHtml, title, fontSize);
+
+  try {
+    showToast('<span class="toast-spinner"></span> Generating PDF on server…');
+
+    const response = await fetch('/api/export-pdf', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ html: fullHtml, title, margin }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Server error' }));
+      throw new Error(err.detail || err.error || `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const safeFilename = title
+      .replace(/[^a-z0-9\s-]/gi, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .toLowerCase() || 'book';
+    dlBlob(blob, safeFilename + '.pdf');
+
+    hideToast();
+    setStatus('✓ PDF exported');
+    showToast('✅ PDF saved');
+
+  } catch (err) {
+    hideToast();
+    console.error('[exportPDF]', err);
+    setStatus('PDF error: ' + err.message, true);
+    showToast('❌ PDF failed: ' + err.message);
+  }
+}
+
+async function buildPDFHtml(rawHtml, title, fontSize) {
+  // Collect all CSS from the live document (same technique as extractThemeCSS)
+  const allCSS = Array.from(document.styleSheets).map(sheet => {
+    try {
+      return Array.from(sheet.cssRules).map(r => r.cssText).join('\n');
+    } catch (e) { return ''; }
+  }).join('\n');
+
+  // Header and watermark as base64
   const hdrB64 = headerBlob ? await blobToBase64(headerBlob) : null;
   const wmB64  = wmBlob     ? await blobToBase64(wmBlob)     : null;
 
-  // Parse into DOM for manipulation
-  const temp = document.createElement('div');
-  temp.innerHTML = rawHtml;
+  const hdrHtml = hdrB64
+    ? `<div class="page-header-img"><img src="${hdrB64}" alt="header"></div>` : '';
+  const wmHtml = wmB64
+    ? `<div class="watermark-layer${wmRotate ? ' wm-rotate' : ''}" style="opacity:${wmOpacity}"><img src="${wmB64}" alt="watermark"></div>` : '';
 
-  // ── Flat content body ─────────────────────────────────────────
-  const contentDiv = document.createElement('div');
-  // Include book-page class so pre/code CSS selectors (.book-page pre) match
-  contentDiv.className = `book-page theme-${currentTheme}`;
-  contentDiv.style.cssText = `font-size:${fontSize};box-shadow:none;border-radius:0;` +
-    `max-width:100%;margin:0;background:transparent;overflow:visible`;
-  contentDiv.innerHTML = temp.innerHTML;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Sora:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <style>
+    /* All BookCraft styles extracted from live document */
+    ${allCSS}
 
-  // Turn :::pagebreak::: markers into real CSS page breaks
-  contentDiv.querySelectorAll('.page-break-visual').forEach(el => {
-    el.style.cssText = 'display:block;height:0;margin:0;padding:0;border:none;' +
-                       'break-after:page;page-break-after:always;overflow:hidden;';
-  });
-
-  // Keep key blocks together (no orphan splits)
-  contentDiv.querySelectorAll('pre,table,.callout,.book-toc,.chapter-break,.book-figure').forEach(el => {
-    el.style.breakInside     = 'avoid';
-    el.style.pageBreakInside = 'avoid';
-  });
-
-  // Ensure callouts never clip their content (fix for handwritten/large-font themes)
-  contentDiv.querySelectorAll('.callout').forEach(el => {
-    el.style.overflow    = 'visible';
-    el.style.height      = 'auto';
-    el.style.minHeight   = '0';
-    el.style.maxHeight   = 'none';
-    el.style.wordBreak   = 'break-word';
-    el.style.overflowWrap = 'break-word';
-  });
-
-  // Generate TOC for PDF (headings only, no page numbers)
-  contentDiv.querySelectorAll('.toc-body').forEach(b => {
-    const items = [];
-    contentDiv.querySelectorAll('h1,h2,h3').forEach(h => {
-      if (h.closest('.book-toc')) return;
-      const tag  = h.tagName.toLowerCase();
-      const pad  = (tag === 'h1' || tag === 'h2') ? '' : 'padding-left:1.6em';
-      const wt   = (tag === 'h1' || tag === 'h2') ? 'font-weight:700' : 'color:#555';
-      items.push(`<li style="${[pad,wt].filter(Boolean).join(';')}">${h.textContent.trim()}</li>`);
-    });
-    b.innerHTML = `<ol style="list-style:none;padding:0;margin:0">${items.join('') || '<li style="opacity:.5"><em>No headings found.</em></li>'}</ol>`;
-  });
-
-  // ── Apply syntax highlighting ─────────────────────────────────
-  contentDiv.querySelectorAll('pre code').forEach(b => {
-    hljs.highlightElement(b);
-  });
-
-  // ── Assemble final container ──────────────────────────────────
-  const container = document.createElement('div');
-  container.appendChild(contentDiv);
-
-  const opt = {
-    margin:      mmMargin,
-    filename:    title + '.pdf',
-    image:       { type: 'jpeg', quality: 0.95 },
-    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
-    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:   { mode: ['css', 'legacy'] },
-  };
-
-  try {
-    await html2pdf()
-      .from(container)
-      .set(opt)
-      .toPdf()
-      .get('pdf')
-      .then(pdf => {
-        const total     = pdf.internal.getNumberOfPages();
-        const pw        = pdf.internal.pageSize.getWidth();
-        const ph        = pdf.internal.pageSize.getHeight();
-        const titleText = title.replace(/-/g, ' ');
-        for (let i = 1; i <= total; i++) {
-          pdf.setPage(i);
-          pdf.setFontSize(7.5);
-          pdf.setTextColor(160, 160, 160);
-          pdf.text(`— ${i} of ${total} —`, pw / 2, ph - 4, { align: 'center' });
-          if (i > 1) {
-            pdf.setFontSize(6.5);
-            pdf.text(titleText.slice(0, 60), pw - 10, 7, { align: 'right' });
-          }
-        }
-      })
-      .save();
-    hideToast();
-    setStatus('✓ PDF exported successfully');
-    showToast('✅ PDF saved');
-  } catch (err) {
-    hideToast();
-    console.error(err);
-    setStatus('PDF error: ' + err.message, true);
-    showToast('❌ PDF failed — check console');
-  }
+    /* PDF/Print overrides */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-size: ${fontSize};
+    }
+    .book-page {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      margin: 0 0 0 0 !important;
+      max-width: 100% !important;
+      page-break-after: always;
+      break-after: page;
+    }
+    .book-page:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .page-break-visual {
+      display: block;
+      height: 0;
+      page-break-after: always;
+      break-after: page;
+    }
+    pre, table, .callout, .chapter-break, .book-figure {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .callout {
+      overflow: visible !important;
+      height: auto !important;
+      max-height: none !important;
+    }
+    @media print {
+      .book-page { margin: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="book-page theme-${currentTheme}${hdrB64 ? ' has-header' : ''}">
+    ${hdrHtml}
+    ${wmHtml}
+    <div class="page-inner" style="--bm:0cm; font-size:${fontSize};">
+      ${rawHtml}
+    </div>
+  </div>
+</body>
+</html>`;
 }
 
 // ── EPUB EXPORT (proper EPUB 3, Apple Books compatible) ───────────
