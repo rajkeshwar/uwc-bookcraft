@@ -7,7 +7,6 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -2270,20 +2269,9 @@ body{margin:0!important;padding:32px 20px!important;background:#8a8e96!important
 }
 
 // ── PDF EXPORT ────────────────────────────────────────────────────
-// Renders the content page-by-page using a fixed-size clipping window.
-// This avoids the browser canvas size limit (~16 384 – 32 767 px) that
-// html2pdf/html2canvas hits when a single-pass render is attempted on
-// large documents (≳ 30 pages at scale 2), which silently produces
-// blank pages for everything beyond the first ~30 pages.
-//
-// Strategy:
-//   1. Mount the full flat content div off-screen.
-//   2. Measure its total rendered height.
-//   3. For each A4 page slice, shift the content upward with marginTop
-//      so the correct slice is visible in a fixed-height clipping wrapper.
-//   4. Capture that clipping wrapper with html2canvas (always one-page-
-//      tall → well within canvas limits).
-//   5. Assemble all captured images into jsPDF directly.
+// Uses flat content (no .book-page wrappers) so html2pdf paginates
+// naturally — eliminating the blank-space-between-pages problem that
+// occurs when auto-height page boxes are shorter than A4.
 async function exportPDF(title) {
   const margin   = document.getElementById('sel-margin').value;
   const fontSize = document.getElementById('sel-fs').value;
@@ -2293,22 +2281,25 @@ async function exportPDF(title) {
   const processed  = processCustomTags(resolvedMd);
   const rawHtml    = marked.parse(processed);
 
+  const hdrB64 = headerBlob ? await blobToBase64(headerBlob) : null;
+  const wmB64  = wmBlob     ? await blobToBase64(wmBlob)     : null;
+
   // Parse into DOM for manipulation
   const temp = document.createElement('div');
   temp.innerHTML = rawHtml;
 
   // ── Flat content body ─────────────────────────────────────────
   const contentDiv = document.createElement('div');
+  // Include book-page class so pre/code CSS selectors (.book-page pre) match
   contentDiv.className = `book-page theme-${currentTheme}`;
   contentDiv.style.cssText = `font-size:${fontSize};box-shadow:none;border-radius:0;` +
-    `margin:0;background:#fff;overflow:visible;`;
-  contentDiv.style.setProperty('--bf', fontSize);
+    `max-width:100%;margin:0;background:transparent;overflow:visible`;
   contentDiv.innerHTML = temp.innerHTML;
 
-  // Turn :::pagebreak::: markers into invisible zero-height markers
-  // (no CSS page-break needed — we slice manually)
+  // Turn :::pagebreak::: markers into real CSS page breaks
   contentDiv.querySelectorAll('.page-break-visual').forEach(el => {
-    el.style.cssText = 'display:block;height:0;margin:0;padding:0;border:none;overflow:hidden;';
+    el.style.cssText = 'display:block;height:0;margin:0;padding:0;border:none;' +
+                       'break-after:page;page-break-after:always;overflow:hidden;';
   });
 
   // Keep key blocks together (no orphan splits)
@@ -2317,13 +2308,13 @@ async function exportPDF(title) {
     el.style.pageBreakInside = 'avoid';
   });
 
-  // Ensure callouts never clip their content
+  // Ensure callouts never clip their content (fix for handwritten/large-font themes)
   contentDiv.querySelectorAll('.callout').forEach(el => {
-    el.style.overflow     = 'visible';
-    el.style.height       = 'auto';
-    el.style.minHeight    = '0';
-    el.style.maxHeight    = 'none';
-    el.style.wordBreak    = 'break-word';
+    el.style.overflow    = 'visible';
+    el.style.height      = 'auto';
+    el.style.minHeight   = '0';
+    el.style.maxHeight   = 'none';
+    el.style.wordBreak   = 'break-word';
     el.style.overflowWrap = 'break-word';
   });
 
@@ -2332,96 +2323,55 @@ async function exportPDF(title) {
     const items = [];
     contentDiv.querySelectorAll('h1,h2,h3').forEach(h => {
       if (h.closest('.book-toc')) return;
-      const tag = h.tagName.toLowerCase();
-      const pad = (tag === 'h1' || tag === 'h2') ? '' : 'padding-left:1.6em';
-      const wt  = (tag === 'h1' || tag === 'h2') ? 'font-weight:700' : 'color:#555';
+      const tag  = h.tagName.toLowerCase();
+      const pad  = (tag === 'h1' || tag === 'h2') ? '' : 'padding-left:1.6em';
+      const wt   = (tag === 'h1' || tag === 'h2') ? 'font-weight:700' : 'color:#555';
       items.push(`<li style="${[pad,wt].filter(Boolean).join(';')}">${h.textContent.trim()}</li>`);
     });
     b.innerHTML = `<ol style="list-style:none;padding:0;margin:0">${items.join('') || '<li style="opacity:.5"><em>No headings found.</em></li>'}</ol>`;
   });
 
-  // Syntax highlighting
-  contentDiv.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+  // ── Apply syntax highlighting ─────────────────────────────────
+  contentDiv.querySelectorAll('pre code').forEach(b => {
+    hljs.highlightElement(b);
+  });
 
-  // ── Page dimensions ───────────────────────────────────────────
-  // A4 = 210 × 297 mm; 96 px/inch → 1 mm ≈ 3.7795 px
-  const PX_PER_MM   = 96 / 25.4;
-  const contentW_px = Math.round((210 - 2 * mmMargin) * PX_PER_MM);
-  const pageH_px    = Math.round((297 - 2 * mmMargin) * PX_PER_MM);
+  // ── Assemble final container ──────────────────────────────────
+  const container = document.createElement('div');
+  container.appendChild(contentDiv);
 
-  // ── Off-screen clipping window ────────────────────────────────
-  // contentDiv sits inside a fixed-size wrapper; shifting its marginTop
-  // exposes a different A4-sized slice for each page capture.
-  const clipWrap = document.createElement('div');
-  clipWrap.style.cssText =
-    `position:fixed;left:-9999px;top:0;` +
-    `width:${contentW_px}px;height:${pageH_px}px;` +
-    `overflow:hidden;background:#fff;pointer-events:none;z-index:-1;`;
-
-  contentDiv.style.width    = contentW_px + 'px';
-  contentDiv.style.maxWidth = contentW_px + 'px';
-  clipWrap.appendChild(contentDiv);
-  document.body.appendChild(clipWrap);
-
-  // Wait for webfonts and layout to settle before measuring
-  try { await document.fonts.ready; } catch(_) {}
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-  const totalH   = contentDiv.scrollHeight;
-  const nPages   = Math.ceil(totalH / pageH_px);
-  const titleText = title.replace(/-/g, ' ');
-
-  // ── jsPDF setup ───────────────────────────────────────────────
-  const { jsPDF } = window.jspdf;
-  const pdf  = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  const pw   = pdf.internal.pageSize.getWidth();   // 210 mm
-  const ph   = pdf.internal.pageSize.getHeight();  // 297 mm
-  const imgW = pw - 2 * mmMargin;
-  const imgH = ph - 2 * mmMargin;
-
-  // Update toast to show page progress
-  showToast(`<span class="toast-spinner"></span> Generating PDF… page 1 of ${nPages}`);
+  const opt = {
+    margin:      mmMargin,
+    filename:    title + '.pdf',
+    image:       { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['css', 'legacy'] },
+  };
 
   try {
-    for (let i = 0; i < nPages; i++) {
-      if (i > 0) {
-        pdf.addPage();
-        showToast(`<span class="toast-spinner"></span> Generating PDF… page ${i + 1} of ${nPages}`);
-      }
-
-      // Shift content so page i's slice is visible in the clipping window
-      contentDiv.style.marginTop = `${-i * pageH_px}px`;
-      // Allow the reflow to complete before capturing
-      await new Promise(r => requestAnimationFrame(r));
-
-      // Capture exactly one A4 page — canvas is always pageH_px tall,
-      // never approaching the browser's canvas dimension limit.
-      const canvas = await html2canvas(clipWrap, {
-        scale:           2,
-        useCORS:         true,
-        logging:         false,
-        letterRendering: true,
-        scrollX:         0,
-        scrollY:         0,
-        width:           contentW_px,
-        height:          pageH_px,
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      // Place image in the content area (inside margins)
-      pdf.addImage(imgData, 'JPEG', mmMargin, mmMargin, imgW, imgH, undefined, 'FAST');
-
-      // Page footer
-      pdf.setFontSize(7.5);
-      pdf.setTextColor(160, 160, 160);
-      pdf.text(`— ${i + 1} of ${nPages} —`, pw / 2, ph - 4, { align: 'center' });
-      if (i > 0) {
-        pdf.setFontSize(6.5);
-        pdf.text(titleText.slice(0, 60), pw - mmMargin, mmMargin * 0.65, { align: 'right' });
-      }
-    }
-
-    pdf.save(title + '.pdf');
+    await html2pdf()
+      .from(container)
+      .set(opt)
+      .toPdf()
+      .get('pdf')
+      .then(pdf => {
+        const total     = pdf.internal.getNumberOfPages();
+        const pw        = pdf.internal.pageSize.getWidth();
+        const ph        = pdf.internal.pageSize.getHeight();
+        const titleText = title.replace(/-/g, ' ');
+        for (let i = 1; i <= total; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(160, 160, 160);
+          pdf.text(`— ${i} of ${total} —`, pw / 2, ph - 4, { align: 'center' });
+          if (i > 1) {
+            pdf.setFontSize(6.5);
+            pdf.text(titleText.slice(0, 60), pw - 10, 7, { align: 'right' });
+          }
+        }
+      })
+      .save();
     hideToast();
     setStatus('✓ PDF exported successfully');
     showToast('✅ PDF saved');
@@ -2430,9 +2380,6 @@ async function exportPDF(title) {
     console.error(err);
     setStatus('PDF error: ' + err.message, true);
     showToast('❌ PDF failed — check console');
-  } finally {
-    // Always clean up the off-screen element
-    if (clipWrap.parentNode) document.body.removeChild(clipWrap);
   }
 }
 
