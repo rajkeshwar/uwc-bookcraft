@@ -8,7 +8,8 @@
  * Response: application/epub+zip binary stream
  */
 
-import epub from 'epub-gen-memory';
+import lib from 'epub-gen-memory';
+const epub = lib.default || lib;
 
 export const config = {
   api: {
