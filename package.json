@@ -8,7 +8,7 @@
     "node": ">=18.x"
   },
   "dependencies": {
-    "epub-gen-memory": "^1.0.5"
+    "epub-gen-memory": "^1.1.2"
   },
   "scripts": {
     "dev": "vercel dev",
