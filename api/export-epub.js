@@ -4,7 +4,7 @@
  * using epub-gen-memory (pure JS, no native binaries — works on Vercel).
  *
  * POST /api/export-epub
- * Body: { title, author, htmlContent, theme, chapters }
+ * Body: { title, author, theme, chapters }
  * Response: application/epub+zip binary stream
  */
 
@@ -14,13 +14,12 @@ const epub = lib.default || lib;
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb',   // allow large books with base64 images
+      sizeLimit: '10mb',
     },
   },
 };
 
 export default async function handler(req, res) {
-  // Only accept POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -29,7 +28,7 @@ export default async function handler(req, res) {
     const {
       title    = 'My Book',
       author   = 'BookCraft',
-      chapters = [],   // [{ title, content }]  — content is HTML string
+      chapters = [],
       theme    = 'classic',
     } = req.body;
 
@@ -37,33 +36,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No chapters provided' });
     }
 
-    // ── Build epub-gen-memory options ─────────────────────────────
+    // Options object — no content here
     const options = {
       title,
       author,
       publisher: 'BookCraft',
       lang: 'en',
-
-      // Inline CSS matched to the selected BookCraft theme
       css: buildThemeCSS(theme),
-
-      // epub-gen-memory accepts { title, data } per chapter
-      // where data is an HTML string
-      content: chapters.map((ch, i) => ({
-        title: ch.title || (i === 0 ? title : `Chapter ${i + 1}`),
-        data:  sanitiseHTML(ch.content || ''),
-        // excludeFromToc: false by default
-      })),
-
-      // EPUB 3 options
-      version: 3,
       tocTitle: 'Table of Contents',
-      appendChapterTitles: false,  // we already have h1s in the HTML
+      appendChapterTitles: false,
     };
 
-    // ── Generate ──────────────────────────────────────────────────
-    // epub-gen-memory returns a Buffer
-    const epubBuffer = await epub(options, true);  // true = return Buffer
+    // Content is the second argument, chapter HTML key is `content` (not `data`)
+    const content = chapters.map((ch, i) => ({
+      title:   ch.title || (i === 0 ? title : `Chapter ${i + 1}`),
+      content: sanitiseHTML(ch.content || '<p></p>'),
+    }));
+
+    const epubBuffer = await epub(options, content);
+
+    if (!epubBuffer || !epubBuffer.length) {
+      throw new Error('epub-gen-memory returned an empty buffer');
+    }
 
     const safeFilename = title
       .replace(/[^a-z0-9\s-]/gi, '')
@@ -71,7 +65,6 @@ export default async function handler(req, res) {
       .replace(/\s+/g, '-')
       .toLowerCase() || 'book';
 
-    // ── Stream back to browser ────────────────────────────────────
     res.setHeader('Content-Type', 'application/epub+zip');
     res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.epub"`);
     res.setHeader('Content-Length', epubBuffer.length);
@@ -88,24 +81,16 @@ export default async function handler(req, res) {
   }
 }
 
-// ── Sanitise HTML for EPUB XHTML ─────────────────────────────────
-// epub-gen-memory internally converts HTML to XHTML.
-// We do light cleanup to avoid common parser failures.
 function sanitiseHTML(html) {
   return html
-    // Self-close void elements
     .replace(/<br\s*\/?>/gi, '<br/>')
     .replace(/<hr\s*\/?>/gi, '<hr/>')
     .replace(/<img([^>]*?)(?:\s*\/)?>/gi, '<img$1/>')
-    // Remove <script> blocks
     .replace(/<script[\s\S]*?<\/script>/gi, '')
-    // Remove <style> blocks (we use the css option instead)
     .replace(/<style[\s\S]*?<\/style>/gi, '')
-    // Strip data-* attributes that bloat the file
     .replace(/\s+data-[a-z-]+=["'][^"']*["']/gi, '');
 }
 
-// ── Per-theme CSS ────────────────────────────────────────────────
 function buildThemeCSS(theme) {
   const base = `
     body { margin: 0; padding: 0; }
