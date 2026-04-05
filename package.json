@@ -1,0 +1,17 @@
+{
+  "name": "bookcraft",
+  "version": "1.0.0",
+  "description": "BookCraft — Markdown Book Studio with server-side EPUB export",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.x"
+  },
+  "dependencies": {
+    "epub-gen-memory": "^1.0.5"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  }
+}
