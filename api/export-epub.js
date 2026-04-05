@@ -8,7 +8,7 @@
  * Response: application/epub+zip binary stream
  */
 
-import { Epub } from 'epub-gen-memory';
+import epub from 'epub-gen-memory';
 
 export const config = {
   api: {
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
 
     // ── Generate ──────────────────────────────────────────────────
     // epub-gen-memory returns a Buffer
-    const epubBuffer = await Epub(options, true);  // true = return Buffer
+    const epubBuffer = await epub(options, true);  // true = return Buffer
 
     const safeFilename = title
       .replace(/[^a-z0-9\s-]/gi, '')
