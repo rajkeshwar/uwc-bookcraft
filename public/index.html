@@ -2275,7 +2275,7 @@ body{margin:0!important;padding:32px 20px!important;background:#8a8e96!important
 async function exportPDF(title) {
   const margin   = document.getElementById('sel-margin').value;
   const fontSize = document.getElementById('sel-fs').value;
-  const mmMargin = parseFloat(margin) * 10;
+  const mmMargin = parseFloat(margin) * 10; // cm → mm
 
   const resolvedMd = await resolveImgRefs(editor.value, true);
   const processed  = processCustomTags(resolvedMd);
@@ -2284,197 +2284,102 @@ async function exportPDF(title) {
   const hdrB64 = headerBlob ? await blobToBase64(headerBlob) : null;
   const wmB64  = wmBlob     ? await blobToBase64(wmBlob)     : null;
 
-  // Build all pages using existing paginator
+  // Parse into DOM for manipulation
   const temp = document.createElement('div');
   temp.innerHTML = rawHtml;
 
-  // Split into page nodes at pagebreak markers
-  const children = Array.from(temp.childNodes);
-  const sections = [];
-  let cur = [];
-  children.forEach(node => {
-    if (node.nodeType === 1 && node.classList?.contains('page-break-visual')) {
-      sections.push(cur); cur = [];
-    } else {
-      cur.push(node);
-    }
-  });
-  if (cur.length) sections.push(cur);
+  // ── Flat content body ─────────────────────────────────────────
+  const contentDiv = document.createElement('div');
+  // Include book-page class so pre/code CSS selectors (.book-page pre) match
+  contentDiv.className = `book-page theme-${currentTheme}`;
+  contentDiv.style.cssText = `font-size:${fontSize};box-shadow:none;border-radius:0;` +
+    `max-width:100%;margin:0;background:transparent;overflow:visible`;
+  contentDiv.innerHTML = temp.innerHTML;
 
-  // Build individual page divs and attach to a hidden container in DOM
-  // (must be in DOM for html2canvas to resolve vh, fonts, gradients)
-  const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;top:0;left:-9999px;width:210mm;z-index:-9999;background:white;';
-  document.body.appendChild(host);
-
-  const pageDivs = sections.map((nodes, idx) => {
-    const hdrHtml = hdrB64
-      ? `<div class="page-header-img"><img src="${hdrB64}"></div>` : '';
-    const wmHtml = wmB64
-      ? `<div class="watermark-layer${wmRotate?' wm-rotate':''}" style="opacity:${wmOpacity}"><img src="${wmB64}"></div>` : '';
-
-    const div = document.createElement('div');
-    div.className = `book-page theme-${currentTheme}${hdrB64 ? ' has-header' : ''}`;
-    div.style.cssText = `font-size:${fontSize};box-shadow:none;border-radius:0;max-width:100%;margin:0;`;
-    div.innerHTML = hdrHtml + wmHtml + `<div class="page-inner" style="--bm:${margin}">` +
-      nodes.map(n => n.nodeType === 1 ? n.outerHTML : (n.nodeValue?.trim() || '')).join('') +
-      `</div>`;
-
-    // Populate TOC if present
-    div.querySelectorAll('.toc-body').forEach(b => {
-      const items = [];
-      div.querySelectorAll('h1,h2,h3').forEach(h => {
-        if (h.closest('.book-toc')) return;
-        const tag = h.tagName.toLowerCase();
-        const pad = tag === 'h3' ? 'padding-left:1.6em' : '';
-        const wt  = tag === 'h3' ? 'color:#555' : 'font-weight:700';
-        items.push(`<li style="${[pad,wt].filter(Boolean).join(';')}">${h.textContent.trim()}</li>`);
-      });
-      b.innerHTML = `<ol style="list-style:none;padding:0;margin:0">${items.join('')}</ol>`;
-    });
-
-    div.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
-    div.querySelectorAll('.callout').forEach(el => {
-      el.style.overflow = 'visible';
-      el.style.height = 'auto';
-      el.style.maxHeight = 'none';
-    });
-
-    host.appendChild(div);
-    return div;
+  // Turn :::pagebreak::: markers into real CSS page breaks
+  contentDiv.querySelectorAll('.page-break-visual').forEach(el => {
+    el.style.cssText = 'display:block;height:0;margin:0;padding:0;border:none;' +
+                       'break-after:page;page-break-after:always;overflow:hidden;';
   });
 
-  const CHUNK_SIZE = 3;
-  const chunks = [];
-  for (let i = 0; i < pageDivs.length; i += CHUNK_SIZE) {
-    chunks.push(pageDivs.slice(i, i + CHUNK_SIZE));
-  }
+  // Keep key blocks together (no orphan splits)
+  contentDiv.querySelectorAll('pre,table,.callout,.book-toc,.chapter-break,.book-figure').forEach(el => {
+    el.style.breakInside     = 'avoid';
+    el.style.pageBreakInside = 'avoid';
+  });
 
-  const totalPages = pageDivs.length;
-  showToast(`<span class="toast-spinner"></span> Rendering PDF (0/${totalPages} pages)…`);
+  // Ensure callouts never clip their content (fix for handwritten/large-font themes)
+  contentDiv.querySelectorAll('.callout').forEach(el => {
+    el.style.overflow    = 'visible';
+    el.style.height      = 'auto';
+    el.style.minHeight   = '0';
+    el.style.maxHeight   = 'none';
+    el.style.wordBreak   = 'break-word';
+    el.style.overflowWrap = 'break-word';
+  });
+
+  // Generate TOC for PDF (headings only, no page numbers)
+  contentDiv.querySelectorAll('.toc-body').forEach(b => {
+    const items = [];
+    contentDiv.querySelectorAll('h1,h2,h3').forEach(h => {
+      if (h.closest('.book-toc')) return;
+      const tag  = h.tagName.toLowerCase();
+      const pad  = (tag === 'h1' || tag === 'h2') ? '' : 'padding-left:1.6em';
+      const wt   = (tag === 'h1' || tag === 'h2') ? 'font-weight:700' : 'color:#555';
+      items.push(`<li style="${[pad,wt].filter(Boolean).join(';')}">${h.textContent.trim()}</li>`);
+    });
+    b.innerHTML = `<ol style="list-style:none;padding:0;margin:0">${items.join('') || '<li style="opacity:.5"><em>No headings found.</em></li>'}</ol>`;
+  });
+
+  // ── Apply syntax highlighting ─────────────────────────────────
+  contentDiv.querySelectorAll('pre code').forEach(b => {
+    hljs.highlightElement(b);
+  });
+
+  // ── Assemble final container ──────────────────────────────────
+  const container = document.createElement('div');
+  container.appendChild(contentDiv);
+
+  const opt = {
+    margin:      mmMargin,
+    filename:    title + '.pdf',
+    image:       { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['css', 'legacy'] },
+  };
 
   try {
-    // Generate each chunk as a separate pdf blob
-    const pdfBlobs = [];
-
-    for (let ci = 0; ci < chunks.length; ci++) {
-      const chunk = chunks[ci];
-      const chunkContainer = document.createElement('div');
-      chunk.forEach(p => chunkContainer.appendChild(p.cloneNode(true)));
-      host.appendChild(chunkContainer);
-
-      const rendered = ci * CHUNK_SIZE + chunk.length;
-      showToast(`<span class="toast-spinner"></span> Rendering PDF (${rendered}/${totalPages} pages)…`);
-
-      const opt = {
-        margin:      mmMargin,
-        filename:    `chunk_${ci}.pdf`,
-        image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-          scale:           2,
-          useCORS:         true,
-          logging:         false,
-          letterRendering: true,
-          windowWidth:     794, // 210mm at 96dpi
-        },
-        jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] },
-      };
-
-      const blob = await html2pdf().from(chunkContainer).set(opt).outputPdf('blob');
-      pdfBlobs.push(blob);
-      host.removeChild(chunkContainer);
-
-      // Yield to browser between chunks to avoid UI freeze
-      await new Promise(r => setTimeout(r, 50));
-    }
-
-    // Merge all chunk PDFs into one using jsPDF
-    showToast('<span class="toast-spinner"></span> Merging PDF pages…');
-
-    const { jsPDF } = window.jspdf || await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    const mergedPdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    let isFirst = true;
-
-    for (let bi = 0; bi < pdfBlobs.length; bi++) {
-      const arrayBuf  = await pdfBlobs[bi].arrayBuffer();
-      const uint8     = new Uint8Array(arrayBuf);
-
-      // Load chunk with pdf-lib via existing html2pdf jsPDF instance
-      // Simpler: re-render each chunk page as image and add to merged doc
-      const chunkOpt = {
-        margin:      mmMargin,
-        image:       { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-          scale:           2,
-          useCORS:         true,
-          logging:         false,
-          letterRendering: true,
-          windowWidth:     794,
-        },
-        jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] },
-      };
-
-      const chunk = chunks[bi];
-      const chunkContainer2 = document.createElement('div');
-      chunk.forEach(p => chunkContainer2.appendChild(p.cloneNode(true)));
-      host.appendChild(chunkContainer2);
-
-      const chunkPdfObj = await html2pdf()
-        .from(chunkContainer2)
-        .set(chunkOpt)
-        .toPdf()
-        .get('pdf');
-
-      host.removeChild(chunkContainer2);
-
-      const chunkPageCount = chunkPdfObj.internal.getNumberOfPages();
-      for (let p = 1; p <= chunkPageCount; p++) {
-        if (!isFirst) mergedPdf.addPage();
-        isFirst = false;
-
-        // Get page as image data URI and add to merged PDF
-        chunkPdfObj.setPage(p);
-        const imgData = chunkPdfObj.output('datauristring');
-        const pw = mergedPdf.internal.pageSize.getWidth();
-        const ph = mergedPdf.internal.pageSize.getHeight();
-        mergedPdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
-      }
-
-      await new Promise(r => setTimeout(r, 50));
-    }
-
-    // Add page numbers to merged PDF
-    const total = mergedPdf.internal.getNumberOfPages();
-    const pw    = mergedPdf.internal.pageSize.getWidth();
-    const ph    = mergedPdf.internal.pageSize.getHeight();
-    for (let i = 1; i <= total; i++) {
-      mergedPdf.setPage(i);
-      mergedPdf.setFontSize(7.5);
-      mergedPdf.setTextColor(160, 160, 160);
-      mergedPdf.text(`— ${i} of ${total} —`, pw / 2, ph - 4, { align: 'center' });
-    }
-
-    const safeFilename = title
-      .replace(/[^a-z0-9\s-]/gi, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .toLowerCase() || 'book';
-
-    mergedPdf.save(safeFilename + '.pdf');
-
+    await html2pdf()
+      .from(container)
+      .set(opt)
+      .toPdf()
+      .get('pdf')
+      .then(pdf => {
+        const total     = pdf.internal.getNumberOfPages();
+        const pw        = pdf.internal.pageSize.getWidth();
+        const ph        = pdf.internal.pageSize.getHeight();
+        const titleText = title.replace(/-/g, ' ');
+        for (let i = 1; i <= total; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(160, 160, 160);
+          pdf.text(`— ${i} of ${total} —`, pw / 2, ph - 4, { align: 'center' });
+          if (i > 1) {
+            pdf.setFontSize(6.5);
+            pdf.text(titleText.slice(0, 60), pw - 10, 7, { align: 'right' });
+          }
+        }
+      })
+      .save();
     hideToast();
     setStatus('✓ PDF exported successfully');
     showToast('✅ PDF saved');
-
   } catch (err) {
     hideToast();
     console.error(err);
     setStatus('PDF error: ' + err.message, true);
     showToast('❌ PDF failed — check console');
-  } finally {
-    document.body.removeChild(host);
   }
 }
 
