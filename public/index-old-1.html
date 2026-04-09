@@ -7,6 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Sora:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;700&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
@@ -204,7 +207,7 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .theme-handwritten .chapter-number{font-family:'Caveat',cursive;font-weight:700;text-transform:none;letter-spacing:.05em}
 .theme-handwritten .chapter-title{font-family:'Kalam',cursive;font-weight:700}
 /* ═══════════════ SHARED CODE BLOCKS (all themes) ═══════════════ */
-.book-page pre{background:#f8f9fa;border-left:3px solid #94a3b8;border-radius:0 6px 6px 0;padding:12px 14px;margin:.8em 0 1em;overflow-x:auto;font-size:.79em;line-height:1.65}
+.book-page pre{background:#f8f9fa;border:1px solid #e5e7eb;border-left:3px solid #94a3b8;border-radius:0 6px 6px 0;padding:12px 14px;margin:.8em 0 1em;overflow-x:auto;font-size:.79em;line-height:1.65}
 .theme-academic .book-page pre,.book-page.theme-academic pre{background:#f5ede0;border-color:#d4b896;border-left-color:var(--gold2)}
 .book-page pre code{background:transparent !important;border:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:1em;color:#374151}
 .book-page code:not(pre code){background:#f3f4f6;border:1px solid #e5e7eb;border-radius:3px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.83em;color:#b91c1c}
@@ -216,13 +219,13 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .book-figure figcaption{font-size:.83em;color:#666;margin-top:6px;font-style:italic}
 
 /* ═══════════════ COVER PAGE ═══════════════ */
-.book-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;height:260px;max-height:260px;text-align:center;padding:1.6em 2.5em;background:linear-gradient(160deg,#111c38 0%,#1e3163 45%,#111c38 100%);color:#fff;border-radius:2px;position:relative;overflow:hidden;margin:0}
+.book-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:78vh;text-align:center;padding:3em 2.5em;background:linear-gradient(160deg,#111c38 0%,#1e3163 45%,#111c38 100%);color:#fff;border-radius:2px;position:relative;overflow:hidden;margin:0}
 .book-cover::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.018) 2px,rgba(255,255,255,.018) 4px);pointer-events:none}
 .book-cover::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#c9a84c 30%,#f0d080 50%,#c9a84c 70%,transparent)}
-.book-cover-ornament{font-size:1.5em;opacity:.35;margin-bottom:.25em;letter-spacing:.3em;color:#c9a84c;position:relative}
-.book-cover-title{font-family:'DM Serif Display','Fraunces',serif;font-size:2em;font-weight:400;line-height:1.18;margin-bottom:.12em;color:#f0e6c8;letter-spacing:-.5px;text-shadow:0 2px 24px rgba(0,0,0,.5);position:relative}
-.book-cover-subtitle{font-size:.92em;color:rgba(240,230,200,.7);margin-bottom:.6em;font-style:italic;letter-spacing:.02em;position:relative;max-width:480px}
-.book-cover-rule{width:70px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);margin:0 auto .6em;position:relative}
+.book-cover-ornament{font-size:2.2em;opacity:.35;margin-bottom:.6em;letter-spacing:.3em;color:#c9a84c;position:relative}
+.book-cover-title{font-family:'DM Serif Display','Fraunces',serif;font-size:2.8em;font-weight:400;line-height:1.18;margin-bottom:.25em;color:#f0e6c8;letter-spacing:-.5px;text-shadow:0 2px 24px rgba(0,0,0,.5);position:relative}
+.book-cover-subtitle{font-size:1.08em;color:rgba(240,230,200,.7);margin-bottom:1.8em;font-style:italic;letter-spacing:.02em;position:relative;max-width:480px}
+.book-cover-rule{width:70px;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);margin:0 auto 1.8em;position:relative}
 .book-cover-rule::before,.book-cover-rule::after{content:'◆';position:absolute;top:50%;transform:translateY(-50%);font-size:.4em;color:#c9a84c}
 .book-cover-rule::before{left:-18px}
 .book-cover-rule::after{right:-18px}
@@ -239,7 +242,7 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .theme-academic .book-cover{background:linear-gradient(160deg,#1e1208 0%,#3d2200 50%,#1e1208 100%)}
 .theme-academic .book-cover::after{background:linear-gradient(90deg,transparent,#b8860b 30%,#d4a843 50%,#b8860b 70%,transparent)}
 .theme-handwritten .book-cover{background:linear-gradient(160deg,#2d2010 0%,#4a3218 50%,#2d2010 100%)}
-.theme-handwritten .book-cover-title{font-family:'Caveat',cursive;font-size:2.3em}
+.theme-handwritten .book-cover-title{font-family:'Caveat',cursive;font-size:3.2em}
 .theme-handwritten .book-cover-subtitle{font-family:'Kalam',cursive}
 .theme-handwritten .book-cover::after{background:linear-gradient(90deg,transparent,#c8a96e 30%,#e8c98e 50%,#c8a96e 70%,transparent)}
 
@@ -249,12 +252,13 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .callout p{margin:0 0 .35em;text-align:left}.callout p:last-child{margin:0}
 .callout strong{display:inline-block;margin-bottom:3px;font-size:.88em}
 .callout-title{font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;display:block}
-.c-info{background:#eff6ff;border-left:3px solid #3b82f6;color:#1e3a5f}.c-info::before{content:'ℹ';color:#3b82f6}
-.c-warning{background:#fffbeb;border-left:3px solid #f59e0b;color:#78350f}.c-warning::before{content:'⚠';color:#f59e0b}
-.c-danger{background:#fff1f2;border-left:3px solid #f43f5e;color:#881337}.c-danger::before{content:'✕';color:#f43f5e}
-.c-tip{background:#f0fdf4;border-left:3px solid #22c55e;color:#14532d}.c-tip::before{content:'✦';color:#22c55e}
-.c-note{background:#faf5ff;border-left:3px solid #a855f7;color:#581c87}.c-note::before{content:'✎';color:#a855f7}
-.c-sidebar{float:right;width:42%;margin:0 0 1em 1.3em;padding:10px 12px;background:#f8f9fa;border-left:3px solid #6b7280;font-size:.87em;clear:right}.c-sidebar::before{display:none}
+.c-info{background:#eff6ff;border:1px solid #bfdbfe;border-left:3px solid #3b82f6;color:#1e3a5f}.c-info::before{content:'ℹ';color:#3b82f6}
+.c-warning{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;color:#78350f}.c-warning::before{content:'⚠';color:#f59e0b}
+.c-danger{background:#fff1f2;border:1px solid #fecdd3;border-left:3px solid #f43f5e;color:#881337}.c-danger::before{content:'✕';color:#f43f5e}
+.c-tip{background:#f0fdf4;border:1px solid #bbf7d0;border-left:3px solid #22c55e;color:#14532d}.c-tip::before{content:'✦';color:#22c55e}
+.c-note{background:#faf5ff;border:1px solid #e9d5ff;border-left:3px solid #a855f7;color:#581c87}.c-note::before{content:'✎';color:#a855f7}
+.c-sidebar{float:right;width:42%;margin:0 0 1em 1.3em;padding:10px 12px;background:#f8f9fa;border:1px solid #e5e7eb;border-top:3px solid #6b7280;font-size:.87em;clear:right}.c-sidebar::before{display:none}
+
 /* ═══════════════ BOOK STRUCTURE ELEMENTS ═══════════════ */
 .book-toc{margin:1.5em 0;padding:1em 1.4em;border-radius:6px}
 .book-toc .toc-title{font-weight:700;font-size:1.08em;margin-bottom:.8em}
@@ -303,22 +307,6 @@ kbd{background:#f1f1f1;border:1px solid #ccc;border-bottom:2px solid #aaa;border
 .btn-primary:hover{opacity:.86}
 .btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 16px;font-size:12.5px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .12s}
 .btn-sec:hover{border-color:var(--gold)}
-
-/* ═══════════════ PRINT-TIP MODAL ═══════════════ */
-.print-tip-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.print-tip-overlay.hidden{display:none}
-.print-tip-box{background:var(--popup);border:1px solid var(--popup-border);border-radius:14px;padding:26px 30px 22px;max-width:430px;width:92%;font-family:'Sora',sans-serif;box-shadow:0 28px 80px rgba(0,0,0,.6)}
-.print-tip-box h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:9px}
-.print-tip-steps{list-style:none;margin-bottom:20px}
-.print-tip-steps li{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;line-height:1.55}
-.print-tip-steps li:last-child{border-bottom:none}
-.print-tip-steps .snum{background:var(--gold);color:#1a0f00;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex-shrink:0;margin-top:1px}
-.print-tip-steps code{background:var(--surface2);border-radius:4px;padding:1px 6px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px}
-.print-tip-actions{display:flex;gap:9px;justify-content:flex-end}
-.pt-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 15px;border-radius:7px;font-size:12px;font-family:'Sora',sans-serif;cursor:pointer;transition:all .14s}
-.pt-cancel:hover{border-color:var(--gold);color:var(--gold)}
-.pt-go{background:var(--gold);border:1px solid var(--gold);color:#1a0f00;padding:7px 18px;border-radius:7px;font-size:12px;font-family:'Sora',sans-serif;cursor:pointer;font-weight:600;transition:opacity .14s}
-.pt-go:hover{opacity:.86}
 
 /* ═══════════════ STATUS BAR ═══════════════ */
 #statusbar{background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:4px 14px;font-size:10.5px;color:var(--muted);flex-shrink:0}
@@ -626,28 +614,10 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
   #preview-scroll{background:white;padding:0;overflow:visible}
   .book-page{box-shadow:none;border-radius:0;margin:0;max-width:100%;break-after:page}
   .book-page:last-child{break-after:avoid}
-  .book-cover{min-height:0!important;height:89mm!important;max-height:89mm!important;overflow:hidden!important;padding:8mm 20mm!important}
 }
 </style>
 </head>
 <body>
-
-<!-- PRINT-TIP MODAL -->
-<div class="print-tip-overlay hidden" id="printTipOverlay">
-  <div class="print-tip-box">
-    <h3>🖨️ Before you print — one quick step</h3>
-    <ul class="print-tip-steps">
-      <li><span class="snum">1</span>When the print dialog opens, click <code>More settings</code></li>
-      <li><span class="snum">2</span>Uncheck <code>Headers and footers</code> to remove URLs &amp; page info</li>
-      <li><span class="snum">3</span>Set <code>Margins</code> to <code>None</code> for a clean edge-to-edge output</li>
-      <li><span class="snum">4</span>Click <code>Save / Print</code> — done!</li>
-    </ul>
-    <div class="print-tip-actions">
-      <button class="pt-cancel" onclick="document.getElementById('printTipOverlay').classList.add('hidden')">Cancel</button>
-      <button class="pt-go" onclick="document.getElementById('printTipOverlay').classList.add('hidden'); doPrint()">Open Print Dialog →</button>
-    </div>
-  </div>
-</div>
 
 <!-- TOOLBAR -->
 <div id="tb">
@@ -833,7 +803,7 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         Export HTML <span class="badge b-info" style="margin-left:auto">HTML</span>
       </div>
-      <div class="mi" onclick="showPrintTip()">
+      <div class="mi" onclick="exportAs('pdf')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Export PDF <span class="badge b-red" style="margin-left:auto">PDF</span>
       </div>
@@ -864,7 +834,7 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
   <button class="mob-icon-btn" onclick="doRedo()" title="Redo" id="mob-redo-btn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/></svg>
   </button>
-  <button class="mob-icon-btn gold" onclick="showPrintTip()" title="Export PDF">
+  <button class="mob-icon-btn gold" onclick="exportAs('pdf')" title="Export PDF">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
   </button>
 </div>
@@ -1121,7 +1091,7 @@ body.light-app .ai-tag-item code{color:#7c3aed;background:rgba(124,58,237,.08)}
   <div class="mob-sheet-section">
     <div class="mob-sheet-label">Export</div>
     <div class="mob-tile-grid">
-      <div class="mob-tile red" onclick="showPrintTip();closeMobSheet()">
+      <div class="mob-tile red" onclick="exportAs('pdf');closeMobSheet()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>PDF
       </div>
       <div class="mob-tile blue" onclick="exportAs('html');closeMobSheet()">
@@ -2227,7 +2197,8 @@ async function exportAs(type) {
   }
 
   if (type === 'pdf') {
-    showPrintTip();
+    showToast('<span class="toast-spinner"></span> Generating PDF…');
+    await exportPDF(title);
     return;
   }
 
@@ -2281,7 +2252,7 @@ body{margin:0!important;padding:32px 20px!important;background:#8a8e96!important
 .book-page{max-width:800px!important;margin:0 auto 24px!important;--bm:${margin};--bf:${fontSize}}
 .book-page:last-child{margin-bottom:0!important}
 .page-inner{padding:${margin}!important;padding-bottom:calc(${margin} + 26px)!important}
-@media print{html,body{height:auto!important;overflow:visible!important;background:white!important;padding:0!important}.book-page{margin:0!important;box-shadow:none!important;border-radius:0!important}.book-cover{min-height:0!important;height:89mm!important;max-height:89mm!important;overflow:hidden!important;padding:8mm 20mm!important}}
+@media print{html,body{height:auto!important;overflow:visible!important;background:white!important;padding:0!important}.book-page{margin:0!important;box-shadow:none!important;border-radius:0!important}}
 </style>
 </head>
 <body>
@@ -2298,137 +2269,171 @@ body{margin:0!important;padding:32px 20px!important;background:#8a8e96!important
 </html>`;
 }
 
-// ── PDF EXPORT (print-popup approach — no library, zero top-gap) ─────
-function showPrintTip() {
-  closeAllDD();
-  document.getElementById('printTipOverlay').classList.remove('hidden');
-}
+// ── PDF EXPORT ────────────────────────────────────────────────────
+// Renders the content page-by-page using a fixed-size clipping window.
+// This avoids the browser canvas size limit (~16 384 – 32 767 px) that
+// html2pdf/html2canvas hits when a single-pass render is attempted on
+// large documents (≳ 30 pages at scale 2), which silently produces
+// blank pages for everything beyond the first ~30 pages.
+//
+// Strategy:
+//   1. Mount the full flat content div off-screen.
+//   2. Measure its total rendered height.
+//   3. For each A4 page slice, shift the content upward with marginTop
+//      so the correct slice is visible in a fixed-height clipping wrapper.
+//   4. Capture that clipping wrapper with html2canvas (always one-page-
+//      tall → well within canvas limits).
+//   5. Assemble all captured images into jsPDF directly.
+async function exportPDF(title) {
+  const margin   = document.getElementById('sel-margin').value;
+  const fontSize = document.getElementById('sel-fs').value;
+  const mmMargin = parseFloat(margin) * 10; // cm → mm
 
-function doPrint() {
-  // ── Collect all font/preconnect <link> tags ──────────────────────
-  const fontLinks = Array.from(document.querySelectorAll('link'))
-    .map(l => l.outerHTML).join('\n');
+  const resolvedMd = await resolveImgRefs(editor.value, true);
+  const processed  = processCustomTags(resolvedMd);
+  const rawHtml    = marked.parse(processed);
 
-  // ── Gather relevant CSS rules ────────────────────────────────────
-  // Skip rules whose selector targets only app-UI chrome elements.
-  // Use SELECTOR-level matching (not full cssText) to avoid accidentally
-  // dropping content rules like .book-cover which contain "overflow:hidden".
-  const uiSelectors = [
-    '#tb', '#editor', '#editor-panel', '#preview-panel', '#preview-scroll',
-    '#statusbar', '#resize-handle', '#main{', '#toast', '#dark-btn',
-    '#ai-guide', '#mob-', '.dd-menu', '.dd{', '.brand', '.brand-',
-    '.tb-btn', '.tb-spacer', '.undo-redo', '.sep{', '.panel-bar',
-    '.panel-label', '.counter', '.preview-tabs', '.ptab', '.modal-overlay',
-    '.modal{', '.modal-hdr', '.modal-body', '.modal-footer', '.modal-close',
-    '.modal-lg', '.upload-zone', '.form-group', '.form-row', '.btn-primary',
-    '.btn-sec', '.img-preview', '.md-output', '.settings-row', '.theme-opt',
-    '.swatch', '.mob-', '.status-dot', '#status-msg', '.print-tip-overlay',
-    '.print-tip-', '.pt-cancel', '.pt-go', '.badge', '.menu-label', '.mi{',
-    '.mi:', '.menu-sep', '.ai-hero', '.ai-step', '.ai-tag', '.ai-download',
-    '.ai-prompt', '.ai-tags', '@keyframes'
-  ];
+  // Parse into DOM for manipulation
+  const temp = document.createElement('div');
+  temp.innerHTML = rawHtml;
 
-  // Also skip html/body rules that control app layout overflow/height
-  const isAppLayoutRule = r => {
-    const s = r.selectorText || '';
-    return (s === 'html, body' || s === 'html,body' || s === 'html' || s === 'body') &&
-           (r.cssText.includes('overflow') || r.cssText.includes('height:100%') ||
-            r.cssText.includes('display:flex') || r.cssText.includes('flex-direction:column'));
-  };
+  // ── Flat content body ─────────────────────────────────────────
+  const contentDiv = document.createElement('div');
+  contentDiv.className = `book-page theme-${currentTheme}`;
+  contentDiv.style.cssText = `font-size:${fontSize};box-shadow:none;border-radius:0;` +
+    `margin:0;background:#fff;overflow:visible;`;
+  contentDiv.style.setProperty('--bf', fontSize);
+  contentDiv.innerHTML = temp.innerHTML;
 
-  const styles = Array.from(document.styleSheets)
-    .flatMap(ss => { try { return Array.from(ss.cssRules); } catch(e) { return []; } })
-    .filter(r => {
-      if (isAppLayoutRule(r)) return false;
-      const sel = r.selectorText || r.cssText || '';
-      return !uiSelectors.some(u => sel.includes(u));
-    })
-    .map(r => r.cssText)
-    .join('\n');
-
-  // ── Snapshot all live book pages from the preview ────────────────
-  const pages = document.querySelectorAll('#preview-scroll .book-page');
-  const pagesHtml = Array.from(pages).map(p => p.outerHTML).join('\n');
-
-  // Resolve current font-size and margin (for explicit override in page-inner)
-  const fontSize = document.getElementById('sel-fs')?.value || '11.5pt';
-  const margin   = document.getElementById('sel-margin')?.value || '2.4cm';
-
-  const printHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>BookCraft Export</title>
-${fontLinks}
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: #fff; margin: 0; padding: 0; }
-/* ── Use @page margin so EVERY physical page gets the same margin ── */
-@page { size: A4; margin: ${margin}; }
-
-/* ── All content styles (theme, covers, callouts, etc.) ── */
-${styles}
-
-/* ── Print-specific layout overrides ── */
-.book-page {
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  max-width: 100% !important;
-  width: 100% !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  position: relative !important;
-}
-
-/* ── page-inner: margin comes from @page, only override font-size and zero out padding ── */
-.page-inner {
-  font-size: ${fontSize} !important;
-  padding: 0 !important;
-}
-.has-header .page-inner {
-  padding-top: 75px !important;
-}
-
-/* Cover: max 30% of A4 page height (297mm × 0.30 = ~89mm) */
-.book-cover {
-  min-height:  0      !important;
-  height:      89mm   !important;
-  max-height:  89mm   !important;
-  overflow:    hidden !important;
-  padding:     8mm 20mm !important;
-  border-radius: 0    !important;
-}
-.book-cover-ornament { font-size: 1.4em   !important; margin-bottom: 0.25em !important; }
-.book-cover-title    { font-size: 2em     !important; margin-bottom: 0.15em !important; }
-.book-cover-subtitle { font-size: 0.92em  !important; margin-bottom: 0.6em  !important; }
-.book-cover-rule     { margin: 0 auto 0.6em !important; }
-.book-cover-author   { font-size: 0.75em  !important; }
-
-/* Hide preview-only chrome */
-.page-footer       { display: none !important; }
-.page-break-visual { display: none !important; }
-
-/* Force background colours and gradients to print */
-* {
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
-  color-adjust: exact !important;
-}
-</style>
-</head>
-<body>${pagesHtml}</body>
-</html>`;
-
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { alert('Pop-up blocked — please allow pop-ups for this page and try again.'); return; }
-  win.document.open();
-  win.document.write(printHtml);
-  win.document.close();
-
-  win.addEventListener('load', () => {
-    setTimeout(() => { win.focus(); win.print(); win.close(); }, 900);
+  // Turn :::pagebreak::: markers into invisible zero-height markers
+  // (no CSS page-break needed — we slice manually)
+  contentDiv.querySelectorAll('.page-break-visual').forEach(el => {
+    el.style.cssText = 'display:block;height:0;margin:0;padding:0;border:none;overflow:hidden;';
   });
+
+  // Keep key blocks together (no orphan splits)
+  contentDiv.querySelectorAll('pre,table,.callout,.book-toc,.chapter-break,.book-figure').forEach(el => {
+    el.style.breakInside     = 'avoid';
+    el.style.pageBreakInside = 'avoid';
+  });
+
+  // Ensure callouts never clip their content
+  contentDiv.querySelectorAll('.callout').forEach(el => {
+    el.style.overflow     = 'visible';
+    el.style.height       = 'auto';
+    el.style.minHeight    = '0';
+    el.style.maxHeight    = 'none';
+    el.style.wordBreak    = 'break-word';
+    el.style.overflowWrap = 'break-word';
+  });
+
+  // Generate TOC for PDF (headings only, no page numbers)
+  contentDiv.querySelectorAll('.toc-body').forEach(b => {
+    const items = [];
+    contentDiv.querySelectorAll('h1,h2,h3').forEach(h => {
+      if (h.closest('.book-toc')) return;
+      const tag = h.tagName.toLowerCase();
+      const pad = (tag === 'h1' || tag === 'h2') ? '' : 'padding-left:1.6em';
+      const wt  = (tag === 'h1' || tag === 'h2') ? 'font-weight:700' : 'color:#555';
+      items.push(`<li style="${[pad,wt].filter(Boolean).join(';')}">${h.textContent.trim()}</li>`);
+    });
+    b.innerHTML = `<ol style="list-style:none;padding:0;margin:0">${items.join('') || '<li style="opacity:.5"><em>No headings found.</em></li>'}</ol>`;
+  });
+
+  // Syntax highlighting
+  contentDiv.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+
+  // ── Page dimensions ───────────────────────────────────────────
+  // A4 = 210 × 297 mm; 96 px/inch → 1 mm ≈ 3.7795 px
+  const PX_PER_MM   = 96 / 25.4;
+  const contentW_px = Math.round((210 - 2 * mmMargin) * PX_PER_MM);
+  const pageH_px    = Math.round((297 - 2 * mmMargin) * PX_PER_MM);
+
+  // ── Off-screen clipping window ────────────────────────────────
+  // contentDiv sits inside a fixed-size wrapper; shifting its marginTop
+  // exposes a different A4-sized slice for each page capture.
+  const clipWrap = document.createElement('div');
+  clipWrap.style.cssText =
+    `position:fixed;left:-9999px;top:0;` +
+    `width:${contentW_px}px;height:${pageH_px}px;` +
+    `overflow:hidden;background:#fff;pointer-events:none;z-index:-1;`;
+
+  contentDiv.style.width    = contentW_px + 'px';
+  contentDiv.style.maxWidth = contentW_px + 'px';
+  clipWrap.appendChild(contentDiv);
+  document.body.appendChild(clipWrap);
+
+  // Wait for webfonts and layout to settle before measuring
+  try { await document.fonts.ready; } catch(_) {}
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const totalH   = contentDiv.scrollHeight;
+  const nPages   = Math.ceil(totalH / pageH_px);
+  const titleText = title.replace(/-/g, ' ');
+
+  // ── jsPDF setup ───────────────────────────────────────────────
+  const { jsPDF } = window.jspdf;
+  const pdf  = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pw   = pdf.internal.pageSize.getWidth();   // 210 mm
+  const ph   = pdf.internal.pageSize.getHeight();  // 297 mm
+  const imgW = pw - 2 * mmMargin;
+  const imgH = ph - 2 * mmMargin;
+
+  // Update toast to show page progress
+  showToast(`<span class="toast-spinner"></span> Generating PDF… page 1 of ${nPages}`);
+
+  try {
+    for (let i = 0; i < nPages; i++) {
+      if (i > 0) {
+        pdf.addPage();
+        showToast(`<span class="toast-spinner"></span> Generating PDF… page ${i + 1} of ${nPages}`);
+      }
+
+      // Shift content so page i's slice is visible in the clipping window
+      contentDiv.style.marginTop = `${-i * pageH_px}px`;
+      // Allow the reflow to complete before capturing
+      await new Promise(r => requestAnimationFrame(r));
+
+      // Capture exactly one A4 page — canvas is always pageH_px tall,
+      // never approaching the browser's canvas dimension limit.
+      const canvas = await html2canvas(clipWrap, {
+        scale:           2,
+        useCORS:         true,
+        logging:         false,
+        letterRendering: true,
+        scrollX:         0,
+        scrollY:         0,
+        width:           contentW_px,
+        height:          pageH_px,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      // Place image in the content area (inside margins)
+      pdf.addImage(imgData, 'JPEG', mmMargin, mmMargin, imgW, imgH, undefined, 'FAST');
+
+      // Page footer
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(160, 160, 160);
+      pdf.text(`— ${i + 1} of ${nPages} —`, pw / 2, ph - 4, { align: 'center' });
+      if (i > 0) {
+        pdf.setFontSize(6.5);
+        pdf.text(titleText.slice(0, 60), pw - mmMargin, mmMargin * 0.65, { align: 'right' });
+      }
+    }
+
+    pdf.save(title + '.pdf');
+    hideToast();
+    setStatus('✓ PDF exported successfully');
+    showToast('✅ PDF saved');
+  } catch (err) {
+    hideToast();
+    console.error(err);
+    setStatus('PDF error: ' + err.message, true);
+    showToast('❌ PDF failed — check console');
+  } finally {
+    // Always clean up the off-screen element
+    if (clipWrap.parentNode) document.body.removeChild(clipWrap);
+  }
 }
 
 // ── EPUB EXPORT (proper EPUB 3, Apple Books compatible) ───────────
@@ -2524,6 +2529,8 @@ function splitIntoChapters(bookTitle, html) {
 
   return chapters;
 }
+
+
 
 function buildEPUBChapter(rawHtml) {
   // Convert HTML to valid XHTML: self-close void elements, strip non-EPUB elements
